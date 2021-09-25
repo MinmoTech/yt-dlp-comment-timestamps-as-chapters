@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "yt-dlp-comment-timestamps-as-chapters"
+version = "0.1.0"
+description = "Download youtube videos with yt-dlp and embed timestamps from comments as chapters"
+authors = ["Your Name <you@example.com>"]
+license = "gpl2"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+yt-dlp = "^2021.9.25"
+sortedcontainers = "^2.4.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
