@@ -7,17 +7,19 @@ from yt_dlp import YoutubeDL
 from yt_dlp.postprocessor import FFmpegEmbedSubtitlePP, FFmpegMetadataPP
 from yt_dlp.postprocessor.common import PostProcessor
 
-# in mp4 files the first chapter will always start at 0:00, so we will add a dummy chapter instead titled "-"
+# in mp4 files the first chapter will always start at 0:00, so if mp4 is chosen as output_format,
+# a dummy chapter will be added at the start titled "-"
 output_format = "mkv"
 
-# if true will only include comments that are above chapter_style_comment_threshold
+# if true will only include comments that include chapter_style_comment_threshold number of comments
 include_only_chapter_style_timestamps = False
 chapter_style_comment_threshold = 5
 
-# more comments increse download time
+# more comments increase download time
 max_comments = 300
 # setting to 2 makes it inspect comment replies too, increases download time significantly
-# you should increase max comments if setting this to "2", as on some videos the first comment has many hundreds of replies
+# you should increase max_comments if setting this to "2",
+# as on some videos the first comment has many hundreds of replies
 comment_depth = 1
 
 # If a timestamp already exists within timestamp +/- merge_duplicate_comments_timeframe, the new one will be skipped
