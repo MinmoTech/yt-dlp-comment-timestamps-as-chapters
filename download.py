@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import re
 import sys
 from typing import Union
@@ -31,7 +33,6 @@ url = sys.argv[1]
 class ChaptersFromTimestampsPP(PostProcessor):
     def __init__(self):
         self.timestamp_regex = r"(?:^|\s*>?\s?\[?)((?:\d{1,2}:)?\d{1,2}:\d{2})\]?-?\s?(.*?)(?=(?:(?:\d{1,2}:)?\d{1,2}:\d{2})|$)"
-        self.sorted_comments = SortedDict()
 
     def convert_timestamp_to_seconds(self, timestamp_list: list[str]) -> int:
         int_timestamp_list = list(map(int, timestamp_list))
@@ -46,19 +47,22 @@ class ChaptersFromTimestampsPP(PostProcessor):
 
     def add_original_video_capters(
         self,
+        sorted_comments: SortedDict,
         original_chapters: list[dict[str, Union[str, int]]],
     ):
         if original_chapters:
             for chapter in original_chapters:
-                self.sorted_comments[chapter["start_time"]] = chapter["title"]
+                sorted_comments[chapter["start_time"]] = chapter["title"]
 
-    def add_to_sorted_comments_dict(self, timestamp_in_sec: int, comment_text: str):
+    def add_to_sorted_comments_dict(
+        self, sorted_comments: SortedDict, timestamp_in_sec: int, comment_text: str
+    ):
         for i in range(
             timestamp_in_sec, timestamp_in_sec + merge_duplicate_comments_timeframe
         ):
-            if i in self.sorted_comments or i * -1 in self.sorted_comments:
+            if i in sorted_comments or i * -1 in sorted_comments:
                 return
-        self.sorted_comments[timestamp_in_sec] = comment_text
+        sorted_comments[timestamp_in_sec] = comment_text
 
     def get_ffmpeg_compatible_chapter_list(
         self,
@@ -97,10 +101,11 @@ class ChaptersFromTimestampsPP(PostProcessor):
         return comments_list
 
     def run(self, info_dict):
+        sorted_comments = SortedDict()
         comments = info_dict["comments"]
         if "chapters" in info_dict and info_dict["chapters"]:
             original_chapters = info_dict["chapters"]
-            self.add_original_video_capters(original_chapters)
+            self.add_original_video_capters(sorted_comments, original_chapters)
 
         if comments:
             for comment in comments:
@@ -120,14 +125,17 @@ class ChaptersFromTimestampsPP(PostProcessor):
                     comment_text = match.group(2)
                     comment_text = comment_text.strip()
                     if comment_text:
-                        self.add_to_sorted_comments_dict(timestamp_in_sec, comment_text)
+                        self.add_to_sorted_comments_dict(
+                            sorted_comments, timestamp_in_sec, comment_text
+                        )
 
-        comments_list = self.get_ffmpeg_compatible_chapter_list(self.sorted_comments)
+        comments_list = self.get_ffmpeg_compatible_chapter_list(sorted_comments)
         info_dict["chapters"] = comments_list
         return [], info_dict
 
 
 ydl_opts = {
+    "outtmpl": "~/Videos/youtube/%(title)s-%(id)s.%(ext)s",
     "writesubtitles": True,
     "writeautomaticsub": True,
     "getcomments": True,
